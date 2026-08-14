@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debt Payoff Planner — Snowball & Avalanche</title>
+<style>
+:root{
+ --bg:#f3f6f8;--surface:#ffffff;--surface2:#f7f9fb;--text:#142536;--muted:#667785;--line:#dfe6eb;
+ --primary:#173b57;--primary2:#1f5b78;--success:#138a67;--warning:#b7791f;--danger:#c2413a;--accent:#1b8a6b;
+ --shadow:0 8px 24px rgba(20,37,54,.06);--radius:14px
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(180deg,#eef2f5 0,#f6f8fa 260px,#f3f6f8 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}.app{max-width:1580px;margin:auto;padding:22px 24px 28px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:12px;background:var(--primary);display:grid;place-items:center;color:#fff;font-size:22px;box-shadow:0 7px 18px rgba(23,59,87,.18)}.brand h1{font-size:20px;margin:0}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px;border-radius:11px;font-weight:700}.btn:hover{transform:translateY(-1px)}.btn.primary{border:0;color:#fff;background:var(--primary)}.btn.ghost{background:transparent}.btn.danger{color:var(--danger)}
+.hero{background:linear-gradient(135deg,#102d43,#173b57);color:#fff;border-radius:24px;padding:30px;box-shadow:var(--shadow);display:grid;grid-template-columns:1.3fr .7fr;gap:24px;align-items:center}.hero h2{font-size:34px;line-height:1.1;margin:0 0 10px}.hero p{color:#d9dcff;margin:0;max-width:650px;line-height:1.6}.hero-side{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hero-stat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);padding:15px;border-radius:15px}.hero-stat small{display:block;color:#cbd0ff}.hero-stat strong{display:block;font-size:22px;margin-top:4px}
+.grid{display:grid;grid-template-columns:430px minmax(0,1fr);gap:18px;margin-top:18px}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}.card h3{margin:0 0 5px;font-size:18px}.sub{color:var(--muted);font-size:13px;margin:0 0 16px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:800;color:#475467}.field input,.field select{width:100%;border:1px solid #d8dde8;background:#fff;padding:11px 12px;border-radius:10px;outline:none}.field input:focus,.field select:focus{border-color:#4d819b;box-shadow:0 0 0 3px rgba(31,91,120,.10)}.add-btn{width:100%;margin-top:14px;padding:13px;border:0;border-radius:10px;color:#fff;font-weight:800;background:var(--primary)}.strategy-row{display:flex;gap:8px;margin:12px 0}.strategy{flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--surface2);font-weight:800}.strategy.active{background:#edf5f3;border-color:#8fc8b7;color:#17654f}.field-help{font-size:11px;color:var(--muted);margin-top:-2px}.info-dot{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border:1px solid #9db5c3;border-radius:50%;font-size:10px;color:var(--primary);cursor:help}.strategy-row .strategy{min-width:0}.compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.strategy-help{border:1px solid #cfdde5;border-radius:14px;padding:16px;background:#f4f8fa;min-width:0;min-height:190px;display:flex;flex-direction:column}.strategy-help h4{margin:0 0 8px;font-size:15px}.strategy-help p{font-size:12px;color:var(--muted);margin:5px 0;line-height:1.45}.strategy-help .help-rule{display:flex;gap:7px;align-items:flex-start;margin:7px 0}.strategy-help .help-rule strong{color:var(--text)}.strategy-help .help-result{margin-top:auto;padding-top:8px;font-size:12px;color:var(--muted)}.strategy-help .help-result strong{color:var(--accent)}@media(max-width:1100px){.compare{grid-template-columns:repeat(2,minmax(0,1fr))}.strategy-help{grid-column:1/-1;min-height:145px}}@media(max-width:900px){.compare{grid-template-columns:1fr}.strategy-help{grid-column:auto}}
+.debt-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}.debt{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface2)}.debt-head{display:flex;justify-content:space-between;gap:10px}.debt-name{font-weight:850}.debt-meta{color:var(--muted);font-size:12px;margin-top:4px}.progress{height:8px;background:#e9edf4;border-radius:99px;overflow:hidden;margin:11px 0 8px}.progress span{display:block;height:100%;background:linear-gradient(90deg,#2c7a9a,#138a67);border-radius:99px}.debt-foot{display:flex;justify-content:space-between;align-items:center;font-size:12px}.mini-actions{display:flex;gap:6px}.icon-btn{border:0;background:transparent;color:var(--muted);padding:4px 6px;border-radius:7px}.icon-btn:hover{background:#eef0f5;color:var(--text)}
+.dashboard{display:grid;gap:18px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:var(--shadow)}.stat .label{color:var(--muted);font-size:12px;font-weight:800}.stat .value{font-size:25px;font-weight:900;margin-top:5px}.stat .note{font-size:11px;color:var(--muted);margin-top:4px}.accent{color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.progress-card{display:grid;grid-template-columns:170px 1fr;gap:20px;align-items:center}.ring{width:160px;height:160px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--primary) 0deg,#e9edf4 0deg);position:relative}.ring:after{content:"";position:absolute;width:124px;height:124px;background:#fff;border-radius:50%}.ring-content{position:relative;z-index:1;text-align:center}.ring-content strong{display:block;font-size:29px}.ring-content small{color:var(--muted)}.kpi-list{display:grid;gap:11px}.kpi{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding-bottom:8px;font-size:13px}.kpi:last-child{border-bottom:0}.kpi span:first-child{color:var(--muted)}
+.chart-wrap{height:260px}.chart{width:100%;height:100%;display:flex;align-items:flex-end;gap:6px;padding:20px 8px 28px;border-bottom:1px solid var(--line);overflow:hidden}.bar{flex:1;min-width:8px;background:linear-gradient(180deg,#2b7694,#173b57);border-radius:7px 7px 0 0;position:relative}.bar:hover{opacity:.82}.bar span{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap}.legend{font-size:11px;color:var(--muted);margin-top:8px}
+.compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}.method{border:1px solid var(--line);border-radius:15px;padding:16px;background:var(--surface2);min-width:0;min-height:190px;display:flex;flex-direction:column}.method .method-note{margin-top:auto;padding-top:8px}.method.selected{box-shadow:0 0 0 1px rgba(91,91,214,.08)}.method.selected{border-color:#8fc8b7;background:#f1f8f5;box-shadow:0 0 0 1px rgba(19,138,103,.08)}.method h4{margin:0 0 7px}.method .big{font-size:24px;font-weight:900}.method p{font-size:12px;color:var(--muted);margin:4px 0}.save{color:var(--success);font-weight:800}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{padding:10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.table th:first-child,.table td:first-child{text-align:left}.table th{background:var(--surface2);font-size:11px;color:#475467}.table tr:last-child td{border-bottom:0}
+.whatif{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center}.slider{width:100%;accent-color:var(--accent)}.whatif-result{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mini-result{background:var(--surface2);padding:12px;border-radius:12px}.mini-result small{display:block;color:var(--muted)}.mini-result strong{font-size:18px}
+.milestones{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.milestone{border:1px solid var(--line);padding:13px;border-radius:13px;background:var(--surface2);opacity:.55}.milestone.done{opacity:1;border-color:#b7e0c1;background:#f0fdf4}.milestone .emoji{font-size:22px}.milestone strong{display:block;font-size:12px;margin-top:5px}.milestone small{color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.modal-box{background:#fff;border-radius:18px;width:min(560px,100%);padding:22px;box-shadow:0 25px 70px rgba(0,0,0,.25)}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.close{border:0;background:transparent;font-size:24px;color:var(--muted)}.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:11px;display:none;z-index:30}.toast.show{display:block}
+.empty{text-align:center;padding:25px;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:12px}.footer{padding:18px 5px;color:var(--muted);font-size:11px;text-align:center}.hide{display:none!important}
+@media(max-width:1100px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.app{padding:12px}.hero{padding:22px}.hero h2{font-size:27px}.hero-side,.two,.whatif{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.form-grid,.compare{grid-template-columns:1fr}.progress-card{grid-template-columns:1fr}.ring{margin:auto}.milestones{grid-template-columns:1fr 1fr}.topbar{align-items:flex-start}.actions{justify-content:flex-end}.brand p{display:none}}
+@media print{body{background:#fff}.topbar,.actions,.grid>aside,.whatif,.modal,.footer{display:none!important}.app{max-width:none;padding:0}.hero{box-shadow:none}.card,.stat{box-shadow:none}.dashboard{gap:10px}.print-hide{display:none!important}}
+
+.schedule-summary{display:flex;gap:18px;flex-wrap:wrap;padding:12px 14px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:13px}.schedule-summary strong{color:var(--text)}.schedule-scroll{max-height:520px;overflow:auto}.schedule-scroll thead th{position:sticky;top:0;background:var(--surface);z-index:2}.final-row td{font-weight:700;background:rgba(16,185,129,.08)}
+.strategy-explanation{margin-top:14px;padding:12px 14px;border:1px solid var(--line);background:var(--surface2);border-radius:12px;font-size:13px;line-height:1.5;color:var(--muted)}.method-note{font-size:12px!important;color:var(--muted)!important;margin-top:8px}
+/* Finance-grade visual polish */
+.topbar{padding-bottom:14px;border-bottom:1px solid rgba(20,37,54,.08)}
+.brand h1{letter-spacing:-.02em;font-size:19px}.brand p{color:#728391}
+.card,.stat{box-shadow:0 5px 18px rgba(20,37,54,.045)}
+.card h3{letter-spacing:-.01em}.sub{color:#71808c}
+.hero{border:1px solid rgba(255,255,255,.08);box-shadow:0 14px 32px rgba(16,45,67,.14)}
+.hero-side .hero-stat{background:rgba(255,255,255,.07)}
+.method{background:#fbfcfd}.method h4{color:#18364d}.method.selected h4{color:#17654f}
+.strategy-help{box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.stat .label{letter-spacing:.06em;color:#728391}.stat .value{letter-spacing:-.025em}
+.mini-result{border:1px solid #e2e9ed;background:#f7f9fa}.table-wrap{box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.footer{border-top:1px solid rgba(20,37,54,.06);margin-top:2px}
+
+/* ========================================================== */
+/* DEMO BANNER STYLES */
+/* ========================================================== */
+.demo-banner {
+  background: #2a2a2a;
+  color: #ffffff;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid #06b6d4;
+  overflow: hidden;
+}
+
+/* Shimmer Line - PASA UNA SOLA VEZ */
+.demo-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer-line 2.5s ease-in-out 1;
+  pointer-events: none;
+}
+
+@keyframes shimmer-line {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.demo-banner-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 6px 12px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.demo-badge::before {
+  content: '●';
+  font-size: 9px;
+  color: #06b6d4;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+.demo-banner-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.demo-banner-text strong {
+  font-weight: 600;
+  display: block;
+  font-size: 15px;
+  margin-bottom: 2px;
+  color: #ffffff;
+}
+
+.demo-banner-text span {
+  font-size: 12px;
+  opacity: 0.85;
+  color: #cccccc;
+}
+
+.demo-banner-cta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* BOTÓN CON GLOW - PULSANTE CONTINUO */
+.btn-etsy {
+  background: #06b6d4;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: button-glow-outer 2.5s ease-in-out infinite;
+}
+
+@keyframes button-glow-outer {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(6, 182, 212, 0.3),
+                0 0 10px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.6),
+                0 0 30px rgba(6, 182, 212, 0.3);
+  }
+}
+
+.btn-etsy:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.6),
+              0 8px 20px rgba(6, 182, 212, 0.4) !important;
+  background: #00a8c4;
+}
+
+.btn-etsy::after {
+  content: '↗';
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .demo-banner {
+    padding: 16px 16px;
+  }
+
+  .demo-banner-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .demo-banner-text {
+    font-size: 12px;
+  }
+
+  .demo-banner-text strong {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .demo-banner-text span {
+    font-size: 11px;
+  }
+
+  .demo-banner-cta {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-etsy {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 14px;
+  }
+
+  .demo-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-banner::before,
+  .btn-etsy,
+  .demo-badge::before {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================
+   ADD DEBT PAYWALL
+   ========================================================== */
+.paywall-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.62);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;z-index:500;
+}
+.paywall-overlay.show{display:flex}
+.paywall-box{
+  width:min(500px,100%);background:#fff;border:1px solid #dfe6eb;
+  border-radius:20px;box-shadow:0 28px 90px rgba(0,0,0,.28);
+  padding:28px;position:relative;text-align:center;
+}
+.paywall-close{
+  position:absolute;right:14px;top:12px;width:34px;height:34px;
+  border:0;border-radius:9px;background:#f3f6f8;color:#667785;
+  font-size:22px;line-height:1;cursor:pointer;
+}
+.paywall-icon{
+  width:58px;height:58px;margin:2px auto 16px;border-radius:16px;
+  display:grid;place-items:center;background:#edf5f3;color:#17654f;
+  font-size:26px;font-weight:900;
+}
+.paywall-box h3{margin:0 0 8px;font-size:22px;color:#142536}
+.paywall-box .paywall-sub{
+  margin:0 auto 20px;max-width:390px;color:#667785;
+  font-size:13px;line-height:1.55;
+}
+.paywall-benefits{
+  text-align:left;background:#f7f9fb;border:1px solid #dfe6eb;
+  border-radius:13px;padding:14px 16px;margin-bottom:20px;
+}
+.paywall-benefit{
+  display:flex;gap:9px;align-items:flex-start;margin:8px 0;
+  font-size:13px;color:#334155;
+}
+.paywall-benefit:first-child{margin-top:0}
+.paywall-benefit:last-child{margin-bottom:0}
+.paywall-check{color:#138a67;font-weight:900}
+.paywall-cta{
+  width:100%;border:0;border-radius:11px;padding:13px 16px;
+  background:#173b57;color:#fff;font-weight:800;font-size:14px;
+  cursor:pointer;transition:.2s;
+}
+.paywall-cta:hover{background:#1f5b78;transform:translateY(-1px)}
+.paywall-note{margin:10px 0 0;color:#8a98a3;font-size:11px}
+@media(max-width:650px){
+  .paywall-box{padding:24px 18px}
+}
+
+
+/* Professional tools menu */
+.actions{position:relative;display:flex;align-items:center;gap:8px}
+.menu-trigger,.theme-btn{
+  border:1px solid #d8e0e5;background:#fff;color:#173b57;
+  height:44px;border-radius:11px;padding:0 14px;font-weight:800;
+  display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(20,37,54,.035);
+  transition:all .16s ease;
+}
+.menu-trigger:hover,.theme-btn:hover{border-color:#9db5c3;background:#f8fafb;transform:translateY(-1px)}
+.menu-icon{font-size:18px;line-height:1}
+.theme-btn{width:44px;padding:0;justify-content:center;font-size:16px}
+.tools-menu{
+  position:absolute;right:52px;top:52px;width:270px;background:#fff;
+  border:1px solid #dfe6eb;border-radius:14px;padding:7px;
+  box-shadow:0 18px 45px rgba(20,37,54,.16);z-index:100;
+  display:none;
+}
+.tools-menu.show{display:block}
+.tools-menu button{
+  width:100%;border:0;background:transparent;color:#173b57;
+  padding:10px 9px;border-radius:10px;display:flex;align-items:center;
+  gap:11px;text-align:left;cursor:pointer;
+}
+.tools-menu button:hover{background:#f3f7f9}
+.tools-menu button span:last-child{display:flex;flex-direction:column;min-width:0}
+.tools-menu strong{font-size:12px;line-height:1.2}
+.tools-menu small{font-size:10px;color:#71808c;margin-top:3px}
+.tool-symbol{
+  width:30px;height:30px;border-radius:8px;background:#eef4f7;
+  display:grid!important;place-items:center;color:#173b57;font-size:16px;
+  flex:0 0 30px;
+}
+.menu-divider{height:1px;background:#e6ecef;margin:5px 4px}
+.tools-menu .menu-danger .tool-symbol{background:#fff2f1;color:#b23b34}
+.tools-menu .menu-danger strong{color:#a63832}
+@media(max-width:650px){
+  .menu-trigger{width:44px;padding:0;justify-content:center}
+  .menu-trigger span:last-child{display:none}
+  .tools-menu{right:52px;width:250px}
+}
+
+
+/* Debt colors: each debt keeps the same color in its card, chart and donut. */
+.debt-name-row{display:flex;align-items:center;gap:7px}
+.debt-color-dot{width:9px;height:9px;border-radius:50%;background:var(--debt-color);flex:0 0 9px;box-shadow:0 0 0 2px color-mix(in srgb,var(--debt-color) 14%,transparent)}
+.debt .progress span{background:var(--debt-color)!important}
+.bar{background:var(--debt-color)!important}
+.ring{background:#e9edf4;overflow:visible}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring-segment{fill:none;stroke-linecap:butt;cursor:pointer;transition:opacity .16s ease,stroke-width .16s ease}
+.ring-segment:hover{opacity:.78}
+.ring-tooltip{
+  position:absolute;left:50%;top:-13px;transform:translate(-50%,-100%);
+  min-width:170px;max-width:210px;padding:9px 11px;border-radius:9px;
+  background:#173b57;color:#fff;font-size:11px;line-height:1.35;
+  box-shadow:0 8px 24px rgba(20,37,54,.18);z-index:20;pointer-events:none;
+  opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease;
+}
+.ring-tooltip.show{opacity:1;visibility:visible}
+.ring-tooltip strong{display:block;font-size:12px;margin-bottom:3px}
+.ring-tooltip .tip-muted{color:#d6e1e7}
+.ring-legend-note{font-size:10px;color:var(--muted);margin-top:6px}
+
+
+.method[role="button"]{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.method[role="button"]:hover{transform:translateY(-1px);border-color:#9db5c3;box-shadow:0 4px 12px rgba(20,37,54,.07)}
+.method[role="button"]:focus-visible{outline:3px solid rgba(31,91,120,.18);outline-offset:2px}
+.method.selected[role="button"]:hover{border-color:#69b89f;box-shadow:0 4px 12px rgba(19,138,103,.10)}
+
+</style>
+</head>
+<body>
+<!-- ========================================================== -->
+<!-- DEMO BANNER -->
+<!-- ========================================================== -->
+<div class="demo-banner">
+  <div class="demo-banner-container">
+    <div class="demo-banner-content">
+      <div class="demo-badge">Live Demo</div>
+      <div class="demo-banner-text">
+        <strong>Explore the Full App with Sample Data</strong>
+        <span>View-only preview • Restricted features</span>
+      </div>
+    </div>
+    <div class="demo-banner-cta">
+      <span style="font-size: 13px; color: #cccccc;">See the full version</span>
+      <button class="btn-etsy" onclick="window.open('https://www.etsy.com/listing/4555924123/debt-payoff-planner-snowball-avalanche', '_blank', 'noopener,noreferrer')">View on Etsy</button>
+    </div>
+  </div>
+</div>
+<!-- FIN DEL BANNER -->
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="logo">$</div><div><h1>Debt Payoff Planner</h1><p>Plan it. Track it. Become debt-free. <span style="color:var(--accent);font-weight:800">Demo</span></p></div></div>
+    <div class="actions">
+  <button class="menu-trigger" type="button" onclick="toggleToolsMenu()" aria-haspopup="true" aria-expanded="false">
+    <span class="menu-icon">☰</span>
+    <span>Tools</span>
+  </button>
+  <div id="toolsMenu" class="tools-menu" role="menu">
+    <button type="button" onclick="importData();closeToolsMenu()" role="menuitem">
+      <span class="tool-symbol">↥</span>
+      <span><strong>Import backup</strong><small>Restore a JSON backup</small></span>
+    </button>
+    <button type="button" onclick="exportData();closeToolsMenu()" role="menuitem">
+      <span class="tool-symbol">↧</span>
+      <span><strong>Export backup</strong><small>Save your data as JSON</small></span>
+    </button>
+    <button type="button" onclick="exportCSV();closeToolsMenu()" role="menuitem">
+      <span class="tool-symbol">▤</span>
+      <span><strong>Export CSV</strong><small>Download your debt summary</small></span>
+    </button>
+    <div class="menu-divider"></div>
+    <button type="button" onclick="window.print();closeToolsMenu()" role="menuitem">
+      <span class="tool-symbol">⎙</span>
+      <span><strong>Print plan</strong><small>Print your payoff roadmap</small></span>
+    </button>
+    <button type="button" class="menu-danger" onclick="resetDemo();closeToolsMenu()" role="menuitem">
+      <span class="tool-symbol">↺</span>
+      <span><strong>Reset demo</strong><small>Restore the sample data</small></span>
+    </button>
+  </div>
+  <button class="theme-btn" type="button" onclick="toggleDark()" title="Toggle appearance" aria-label="Toggle appearance">◐</button>
+</div>
+</div>
+
+  <section class="hero">
+    <div><h2>Your debt-free date starts with a plan.</h2><p>Compare Snowball and Avalanche, track real payments, test extra-payment scenarios, and see your progress without spreadsheets or subscriptions.</p></div>
+    <div class="hero-side"><div class="hero-stat"><small>Debt remaining</small><strong id="heroDebt">$0</strong></div><div class="hero-stat"><small>Debt-free date</small><strong id="heroDate">—</strong></div><div class="hero-stat"><small>Paid off</small><strong id="heroPaid">$0</strong></div><div class="hero-stat"><small>Progress</small><strong id="heroProgress">0%</strong></div></div>
+  </section>
+
+  <div class="grid">
+    <aside>
+      <section class="card">
+        <h3>Add a debt</h3><p class="sub">Enter the current numbers for each account.</p>
+        <div class="form-grid">
+          <div class="field full"><label>Debt name</label><input id="name" placeholder="Visa Credit Card"></div>
+          <div class="field"><label>Current balance</label><input id="balance" type="number" min="0" step="0.01" placeholder="5000"></div>
+          <div class="field"><label>APR %</label><input id="apr" type="number" min="0" step="0.01" placeholder="19.99"></div>
+          <div class="field"><label>Minimum payment</label><input id="minPayment" type="number" min="0" step="0.01" placeholder="150"></div>
+        </div>
+        <button class="add-btn" onclick="openAddDebtPaywall()">+ Add Debt</button>
+        <div class="strategy-row"><button id="snowBtn" class="strategy active" onclick="setStrategy('snowball')">❄ Snowball</button><button id="avalBtn" class="strategy" onclick="setStrategy('avalanche')">⚡ Avalanche</button></div>
+        <div class="field"><label>Extra monthly payment</label><input id="extra" type="number" min="0" step="1" value="0" oninput="saveSettings();render()"></div>
+      </section>
+      <section class="card" style="margin-top:18px"><h3>Your debts</h3><p class="sub">Track your starting balance, current balance and progress.</p><div id="debtList" class="debt-list"></div></section>
+    </aside>
+
+    <main class="dashboard">
+      <section class="stats">
+        <div class="stat"><div class="label">CURRENT DEBT</div><div class="value" id="totalDebt">$0</div><div class="note" id="startingNote">Starting: $0</div></div>
+        <div class="stat"><div class="label">MONTHLY PAYMENT</div><div class="value" id="monthlyPayment">$0</div><div class="note">Minimums + extra</div></div>
+        <div class="stat"><div class="label">DEBT-FREE DATE</div><div class="value" id="payoffDate">—</div><div class="note" id="payoffMonths">—</div></div>
+        <div class="stat"><div class="label">EST. INTEREST</div><div class="value" id="interest">$0</div><div class="note">Based on selected plan</div></div>
+      </section>
+
+      <div class="two">
+        <section class="card progress-card"><div class="ring" id="ring">
+  <svg viewBox="0 0 160 160" aria-label="Debt progress by account">
+    <circle class="ring-track" cx="80" cy="80" r="65" fill="none" stroke="#e9edf4" stroke-width="60"></circle>
+    <g id="ringSegments"></g>
+  </svg>
+  <div id="ringTooltip" class="ring-tooltip"></div>
+  <div class="ring-content"><strong id="ringPct">0%</strong><small>paid off</small></div>
+</div><div class="kpi-list"><div class="kpi"><span>Starting debt</span><strong id="kStarting">$0</strong></div><div class="kpi"><span>Paid so far</span><strong id="kPaid">$0</strong></div><div class="kpi"><span>Remaining</span><strong id="kRemaining">$0</strong></div><div class="kpi"><span>Selected strategy</span><strong id="kStrategy">Snowball</strong></div></div></section>
+        <section class="card"><h3>Debt balance</h3><p class="sub">Current balance by account.</p><div class="chart-wrap"><div id="chart" class="chart"></div></div><div class="legend">Each bar represents your current balance.</div></section>
+      </div>
+
+      <section class="card"><h3>Choose your payoff strategy</h3><p class="sub">Each method uses the same monthly budget, but chooses a different debt to attack first.</p><div class="compare"><div id="snowMethod" class="method selected" role="button" tabindex="0" onclick="setStrategy('snowball')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setStrategy('snowball')}"><h4>❄ Snowball</h4><div class="big" id="snowMonths">—</div><p>months to debt-free</p><p>Interest: <strong id="snowInterest">$0</strong></p><p class="method-note">Smallest balance first</p></div><div id="avalMethod" class="method" role="button" tabindex="0" onclick="setStrategy('avalanche')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setStrategy('avalanche')}"><h4>⚡ Avalanche</h4><div class="big" id="avalMonths">—</div><p>months to debt-free</p><p>Interest: <strong id="avalInterest">$0</strong></p><p class="method-note">Highest APR first</p></div><div class="strategy-help"><h4>💡 Which one should I choose?</h4><div class="help-rule"><span>❄</span><p><strong>Snowball:</strong> pays the smallest balance first for quicker wins and motivation.</p></div><div class="help-rule"><span>⚡</span><p><strong>Avalanche:</strong> pays the highest APR first and usually saves more interest.</p></div><div id="strategyHelpResult" class="help-result"></div></div></div><div id="strategyExplanation" class="strategy-explanation"></div></section>
+
+      <section class="card"><h3>What if you pay more?</h3><p class="sub">See how an extra monthly payment can change your timeline and interest.</p><div class="whatif"><div><input id="whatIf" class="slider" type="range" min="0" max="1000" step="25" value="0" oninput="renderWhatIf()"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>$0 extra</span><strong id="whatIfValue">$0/mo</strong><span>$1,000 extra</span></div></div><div class="whatif-result"><div class="mini-result"><small>Debt-free date</small><strong id="whatIfDate">—</strong></div><div class="mini-result"><small>Interest saved</small><strong id="whatIfSaved">$0</strong></div><div class="mini-result"><small>Time saved</small><strong id="whatIfTimeSaved">0 months</strong></div><div class="mini-result"><small>Strategy</small><strong id="whatIfStrategy">—</strong></div></div></div></section>
+
+      <section class="card"><h3>Debt-free milestones</h3><p class="sub">Small wins add up. Your milestones unlock automatically.</p><div id="milestones" class="milestones"></div></section>
+
+      <section class="card"><h3>Payment history</h3><p class="sub">Record real payments so your progress stays current.</p><div id="paymentTable"></div></section>
+
+      <section class="card"><h3>Payoff roadmap</h3><p class="sub">Your projected month-by-month plan based on the selected strategy.</p><div id="scheduleTable"></div></section>
+    </main>
+  </div>
+  <div class="footer">This tool is for personal budgeting and educational purposes only. Payoff dates and interest are estimates and may differ from lender calculations. Your data is stored locally in this browser.</div>
+</div>
+
+
+<div id="addDebtPaywall" class="paywall-overlay" onclick="if(event.target===this)closeAddDebtPaywall()">
+  <div class="paywall-box" role="dialog" aria-modal="true" aria-labelledby="paywallTitle">
+    <button class="paywall-close" onclick="closeAddDebtPaywall()" aria-label="Close">×</button>
+    <div class="paywall-icon">🔒</div>
+    <h3 id="paywallTitle">Unlock unlimited debt tracking</h3>
+    <p class="paywall-sub">
+      You're exploring the live demo. Adding new debt accounts is available in the full version,
+      so you can keep this demo focused on the sample data.
+    </p>
+    <div class="paywall-benefits">
+      <div class="paywall-benefit"><span class="paywall-check">✓</span><span>Add and manage unlimited debt accounts</span></div>
+      <div class="paywall-benefit"><span class="paywall-check">✓</span><span>Track your real balances and payments</span></div>
+      <div class="paywall-benefit"><span class="paywall-check">✓</span><span>Use Snowball, Avalanche, and the interactive What-If tools</span></div>
+      <div class="paywall-benefit"><span class="paywall-check">✓</span><span>Keep your personal data stored locally in your browser</span></div>
+    </div>
+    <button class="paywall-cta" onclick="window.open('https://www.etsy.com/listing/4555924123/debt-payoff-planner-snowball-avalanche','_blank','noopener,noreferrer')">
+      Get the Full Version on Etsy ↗
+    </button>
+    <p class="paywall-note">This demo remains fully interactive with the included sample debts.</p>
+  </div>
+</div>
+
+<div id="paymentModal" class="modal"><div class="modal-box"><div class="modal-head"><h3>Record payment</h3><button class="close" onclick="closeModal()">×</button></div><p class="sub">Update the current balance and save the payment to your history.</p><div class="form-grid"><div class="field full"><label>Debt</label><select id="payDebt"></select></div><div class="field"><label>Payment amount</label><input id="payAmount" type="number" min="0" step="0.01"></div><div class="field"><label>Date</label><input id="payDate" type="date"></div><div class="field full"><label>Note</label><input id="payNote" placeholder="Monthly payment"></div></div><button class="add-btn" onclick="recordPayment()">Save Payment</button></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const KEY='debtPayoffTracker_github_demo_v1';
+const DEMO_STATE={
+  strategy:'snowball',
+  extra:300,
+  dark:false,
+  debts:[
+    {id:1001,name:'Visa',start:5000,balance:3000,apr:20,min:300},
+    {id:1002,name:'Capital One',start:2000,balance:1700,apr:12,min:300},
+    {id:1003,name:'Bank of America',start:1000,balance:900,apr:25,min:150},
+    {id:1004,name:'Visa 2',start:10000,balance:10000,apr:14,min:250}
+  ],
+  payments:[
+    {id:2001,debtId:1001,debtName:'Visa',amount:2000,date:'2026-04-15',note:'Demo payment history'},
+    {id:2002,debtId:1002,debtName:'Capital One',amount:300,date:'2026-05-01',note:'Demo payment history'},
+    {id:2003,debtId:1003,debtName:'Bank of America',amount:100,date:'2026-05-10',note:'Demo payment history'}
+  ]
+};
+let state=JSON.parse(JSON.stringify(DEMO_STATE));
+const $=id=>document.getElementById(id);
+function money(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n||0)}
+function money2(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n||0)}
+function dateFmt(d){if(!d)return '—';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'})}
+function load(){
+  try{
+    const saved=localStorage.getItem(KEY);
+    if(saved) state={...JSON.parse(JSON.stringify(DEMO_STATE)),...JSON.parse(saved)};
+    else localStorage.setItem(KEY,JSON.stringify(state));
+  }catch(e){}
+  if(state.strategy!=='avalanche')state.strategy='snowball';
+  $('extra').value=state.extra||0;
+  document.body.classList.toggle('dark',!!state.dark);
+  applyDark();
+}
+function resetDemo(){
+  state=JSON.parse(JSON.stringify(DEMO_STATE));
+  save();
+  $('extra').value=state.extra;
+  render();
+  toast('Demo data restored');
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function saveSettings(){state.extra=Math.max(0,Number($('extra').value)||0);save()}
+function addDebt(){const name=$('name').value.trim(),balance=Number($('balance').value),apr=Number($('apr').value),min=Number($('minPayment').value);if(!name||balance<=0||min<=0||apr<0){toast('Please enter a name, balance and minimum payment.');return} if(min<=balance*apr/100/12 && apr>0){toast('Minimum payment should be greater than the first month’s interest.');return} state.debts.push({id:Date.now(),name,start:balance,balance,apr,min});$('name').value='';$('balance').value='';$('apr').value='';$('minPayment').value='';save();render();toast('Debt added')}
+function deleteDebt(id){state.debts=state.debts.filter(d=>d.id!==id);state.payments=state.payments.filter(p=>p.debtId!==id);save();render();toast('Debt removed')}
+function setStrategy(s){state.strategy=s;save();render()}
+function applyDark(){const dark=state.dark;document.body.style.setProperty('--surface',dark?'#111827':'#fff');document.body.style.setProperty('--surface2',dark?'#182234':'#f8fafc');document.body.style.setProperty('--bg',dark?'#0b1220':'#f5f7fb');document.body.style.setProperty('--text',dark?'#f3f4f6':'#172033');document.body.style.setProperty('--muted',dark?'#a8b0bf':'#667085');document.body.style.setProperty('--line',dark?'#293548':'#e5e7eb')}
+function toggleDark(){state.dark=!state.dark;save();applyDark()}
+function ordered(list,strategy){const a=list.filter(d=>d.balance>0.009);if(strategy==='avalanche')a.sort((x,y)=>y.apr-x.apr);else a.sort((x,y)=>x.balance-y.balance);return a}
+function simulate(extraOverride=null,strategy=state.strategy){
+  let ds=state.debts.map(d=>({id:d.id,name:d.name,balance:Math.max(0,Number(d.balance)||0),apr:Math.max(0,Number(d.apr)||0),min:Math.max(0,Number(d.min)||0)}));
+  const extra=extraOverride===null?Math.max(0,Number(state.extra)||0):Math.max(0,Number(extraOverride)||0);
+  const fixedBudget=ds.reduce((sum,d)=>sum+d.min,0)+extra;
+  let months=0,interest=0,rows=[];
+  if(!ds.length)return{months:0,interest:0,rows:[],date:null};
+  while(ds.some(d=>d.balance>0.009)&&months<1200){
+    months++;
+    let monthInterest=0,monthPaid=0,budget=fixedBudget;
+
+    // Accrue one month of interest before payments.
+    ds.forEach(d=>{
+      if(d.balance<=0.009)return;
+      const i=d.balance*(d.apr/100/12);
+      d.balance+=i;
+      monthInterest+=i;
+    });
+    interest+=monthInterest;
+
+    // Pay every active debt its minimum. Any unused portion of a minimum
+    // payment becomes available to the payoff target automatically.
+    ds.forEach(d=>{
+      if(d.balance<=0.009||budget<=0.009)return;
+      const p=Math.min(d.min,d.balance,budget);
+      d.balance-=p;
+      budget-=p;
+      monthPaid+=p;
+    });
+
+    // The entire remaining monthly budget (minimums freed by paid-off debts
+    // + the extra payment) rolls into the current Snowball/Avalanche target.
+    let guard=0;
+    while(budget>0.009&&ds.some(d=>d.balance>0.009)&&guard<ds.length+5){
+      const target=ordered(ds,strategy)[0];
+      if(!target)break;
+      const p=Math.min(budget,target.balance);
+      target.balance-=p;
+      budget-=p;
+      monthPaid+=p;
+      guard++;
+    }
+
+    const total=ds.reduce((sum,d)=>sum+d.balance,0);
+    rows.push({month:months,paid:monthPaid,interest:monthInterest,remaining:total});
+  }
+  const date=new Date();
+  date.setDate(1);
+  date.setMonth(date.getMonth()+months);
+  return{months,interest,rows,date};
+}
+function render(){const totalStart=state.debts.reduce((s,d)=>s+d.start,0),total=state.debts.reduce((s,d)=>s+d.balance,0),paid=Math.max(0,totalStart-total),pct=totalStart?Math.min(100,paid/totalStart*100):0;const sim=simulate();const snow=simulate(null,'snowball'),aval=simulate(null,'avalanche');
+$('totalDebt').textContent=money(total);$('startingNote').textContent='Starting: '+money(totalStart);$('monthlyPayment').textContent=money(state.debts.reduce((s,d)=>s+d.min,0)+Number(state.extra||0));$('payoffDate').textContent=dateFmtISO(sim.date);$('payoffMonths').textContent=sim.months?sim.months+' months projected':'Add debts to begin';$('interest').textContent=money2(sim.interest);$('heroDebt').textContent=money(total);$('heroPaid').textContent=money(paid);$('heroProgress').textContent=pct.toFixed(0)+'%';$('heroDate').textContent=dateFmtISO(sim.date);$('ringPct').textContent=pct.toFixed(0)+'%';$('kStarting').textContent=money(totalStart);$('kPaid').textContent=money(paid);$('kRemaining').textContent=money(total);$('kStrategy').textContent=state.strategy==='avalanche'?'Avalanche':'Snowball';$('ring').style.background=`conic-gradient(var(--primary) ${pct*3.6}deg,#e9edf4 ${pct*3.6}deg)`;
+$('snowBtn').classList.toggle('active',state.strategy==='snowball');$('avalBtn').classList.toggle('active',state.strategy==='avalanche');$('snowMethod').classList.toggle('selected',state.strategy==='snowball');$('avalMethod').classList.toggle('selected',state.strategy==='avalanche');$('snowMonths').textContent=snow.months||'—';$('avalMonths').textContent=aval.months||'—';$('snowInterest').textContent=money2(snow.interest);$('avalInterest').textContent=money2(aval.interest);const activeExtra=Math.max(0,Number(state.extra)||0);let strategyNote;if(activeExtra<=0.009){strategyNote='With no extra payment, both strategies may produce the same result when minimum payments are enough to pay down each debt. Add an extra monthly payment to see the payoff order make a difference.';}else{strategyNote='With '+money(activeExtra)+' extra/month, Snowball attacks the smallest balance first while Avalanche attacks the highest APR first.';}$('strategyExplanation').innerHTML=strategyNote;const help=$('strategyHelpResult');if(help){const diff=snow.interest-aval.interest;if(Math.abs(diff)<0.01){help.innerHTML='<strong>For your current debts:</strong> both methods cost about the same in interest. Snowball may be a better choice if motivation and quick wins matter most.';}else if(diff>0){help.innerHTML='<strong>For your current debts:</strong> Avalanche could save about '+money2(diff)+' more in interest.';}else{help.innerHTML='<strong>For your current debts:</strong> Snowball could save about '+money2(Math.abs(diff))+' more in interest.';}}
+renderDebts(totalStart);renderChart();renderRing(totalStart);renderMilestones(pct);renderPayments();renderSchedule(sim);renderWhatIf();}
+function dateFmtISO(d){return d?d.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'—'}
+function debtColor(index){
+  const colors=['#1f5b78','#138a67','#7b61a8','#b56a2a','#9a4f5e','#5d7f9d'];
+  return colors[index%colors.length];
+}
+function renderDebts(totalStart){
+  const box=$('debtList');
+  if(!state.debts.length){
+    box.innerHTML='<div class="empty">No debts yet. Add your first debt above.</div>';
+    return;
+  }
+  box.innerHTML=state.debts.map((d,i)=>{
+    const paid=Math.max(0,d.start-d.balance);
+    const pct=d.start?Math.min(100,paid/d.start*100):0;
+    const color=debtColor(i);
+    return `<div class="debt" style="--debt-color:${color}">
+      <div class="debt-head">
+        <div>
+          <div class="debt-name-row"><span class="debt-color-dot" aria-hidden="true"></span><div class="debt-name">${esc(d.name)}</div></div>
+          <div class="debt-meta">${d.apr.toFixed(2)}% APR · Min ${money2(d.min)}</div>
+        </div>
+        <div class="mini-actions"><button class="icon-btn" title="Record payment" onclick="openPayment(${d.id})">＋</button><button class="icon-btn" title="Delete" onclick="deleteDebt(${d.id})">×</button></div>
+      </div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="debt-foot"><span>${money2(d.balance)} remaining</span><strong>${pct.toFixed(0)}% paid</strong></div>
+    </div>`;
+  }).join('');
+}
+function renderChart(){
+  const box=$('chart');
+  if(!state.debts.length){
+    box.innerHTML='<div class="empty" style="width:100%">Your debt chart will appear here.</div>';
+    return;
+  }
+  const max=Math.max(...state.debts.map(d=>d.balance),1);
+  box.innerHTML=state.debts.map((d,i)=>{
+    const h=Math.max(4,d.balance/max*100);
+    const color=debtColor(i);
+    return `<div class="bar" style="height:${h}%;--debt-color:${color}" title="${esc(d.name)}: ${money2(d.balance)}"><span>${esc(d.name.slice(0,8))}</span></div>`;
+  }).join('');
+}
+
+function renderRing(totalStart){
+  const group=$('ringSegments');
+  const ring=$('ring');
+  const tooltip=$('ringTooltip');
+  if(!group||!ring)return;
+
+  const debts=state.debts.filter(d=>d.balance>0.009);
+  const totalRemaining=debts.reduce((s,d)=>s+d.balance,0);
+  const cx=80,cy=80,r=65;
+  const circumference=2*Math.PI*r;
+  group.innerHTML='';
+
+  if(!debts.length){
+    if(tooltip)tooltip.classList.remove('show');
+    return;
+  }
+
+  let offset=0;
+  debts.forEach((d)=>{
+    const originalIndex=state.debts.indexOf(d);
+    const fraction=d.balance/totalRemaining;
+    const dash=Math.max(0.5,fraction*circumference);
+    const color=debtColor(originalIndex);
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',cx);
+    circle.setAttribute('cy',cy);
+    circle.setAttribute('r',r);
+    circle.setAttribute('class','ring-segment');
+    circle.setAttribute('stroke',color);
+    circle.setAttribute('stroke-width','60');
+    circle.setAttribute('stroke-dasharray',`${dash} ${circumference-dash}`);
+    circle.setAttribute('stroke-dashoffset',`${-offset}`);
+    circle.dataset.name=d.name;
+    circle.dataset.paid=d.start?Math.min(100,Math.max(0,(d.start-d.balance)/d.start*100)):0;
+    circle.dataset.remaining=d.balance;
+    circle.addEventListener('mouseenter',()=>{
+      if(!tooltip)return;
+      tooltip.innerHTML=`<strong>${esc(d.name)}</strong><span>${Number(circle.dataset.paid).toFixed(0)}% paid off</span><br><span class="tip-muted">${money2(d.balance)} remaining</span>`;
+      tooltip.classList.add('show');
+    });
+    circle.addEventListener('mouseleave',()=>tooltip&&tooltip.classList.remove('show'));
+    group.appendChild(circle);
+    offset+=dash;
+  });
+}
+
+function renderMilestones(pct){const first=state.debts.some(d=>d.balance<=0.009);const items=[['💵','10% paid',pct>=10],['🔥','25% paid',pct>=25],['🏆','50% paid',pct>=50],['🎉','First debt cleared',first],['🚀','75% paid',pct>=75],['💎','Debt free',pct>=99.99]];$('milestones').innerHTML=items.map(x=>`<div class="milestone ${x[2]?'done':''}"><div class="emoji">${x[0]}</div><strong>${x[1]}</strong><small>${x[2]?'Unlocked':'Keep going!'}</small></div>`).join('')}
+function renderPayments(){const box=$('paymentTable');if(!state.payments.length){box.innerHTML='<div class="empty">No payments recorded yet. Click ＋ next to a debt to log one.</div>';return}const rows=[...state.payments].sort((a,b)=>b.date.localeCompare(a.date));box.innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Debt</th><th>Payment</th><th>Note</th><th></th></tr></thead><tbody>${rows.slice(0,30).map(p=>`<tr><td>${p.date}</td><td>${esc(p.debtName)}</td><td>${money2(p.amount)}</td><td>${esc(p.note||'')}</td><td><button class="icon-btn" onclick="removePayment(${p.id})">×</button></td></tr>`).join('')}</tbody></table></div>${rows.length>30?'<div class="legend">Showing the latest 30 payments.</div>':''}`}
+function renderSchedule(sim){const box=$('scheduleTable');if(!sim.rows.length){box.innerHTML='<div class="empty">Your payoff roadmap will appear after you add a debt.</div>';return}const rows=sim.rows;const last=rows[rows.length-1];box.innerHTML=`<div class="schedule-summary"><strong>${rows.length} projected months</strong><span>Final balance: ${money2(last.remaining)}</span><span>Total interest: ${money2(sim.interest)}</span></div><div class="table-wrap schedule-scroll"><table class="table"><thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Remaining</th></tr></thead><tbody>${rows.map(r=>{const principal=Math.max(0,r.paid-r.interest);const finalRow=r.month===rows.length?' class="final-row"':'';return `<tr${finalRow}><td>Month ${r.month}</td><td>${money2(r.paid)}</td><td>${money2(r.interest)}</td><td>${money2(principal)}</td><td>${money2(r.remaining)}</td></tr>`}).join('')}</tbody></table></div><div class="legend">This roadmap uses the exact same simulation as the dashboard and What-If calculator. The final row corresponds to the projected debt-free date.</div>`}
+function renderWhatIf(){const v=Number($('whatIf').value)||0;$('whatIfValue').textContent=money(v)+'/mo';const base=simulate(0,state.strategy),test=simulate(v,state.strategy);const monthsSaved=Math.max(0,base.months-test.months);$('whatIfDate').textContent=dateFmtISO(test.date);$('whatIfSaved').textContent=money2(Math.max(0,base.interest-test.interest));$('whatIfTimeSaved').textContent=monthsSaved+' '+(monthsSaved===1?'month':'months');$('whatIfStrategy').textContent=state.strategy==='avalanche'?'Avalanche':'Snowball'}
+function openPayment(id=null){$('paymentModal').classList.add('show');$('payDebt').innerHTML=state.debts.map(d=>`<option value="${d.id}" ${d.id===id?'selected':''}>${esc(d.name)} — ${money2(d.balance)} left</option>`).join('');$('payDate').value=new Date().toISOString().slice(0,10);$('payAmount').value=''}function closeModal(){$('paymentModal').classList.remove('show')}
+function recordPayment(){const id=Number($('payDebt').value),amount=Number($('payAmount').value),date=$('payDate').value,note=$('payNote').value.trim();const d=state.debts.find(x=>x.id===id);if(!d||amount<=0||!date){toast('Enter a valid payment.');return}const applied=Math.min(amount,d.balance);d.balance=Math.max(0,d.balance-applied);state.payments.push({id:Date.now(),debtId:id,debtName:d.name,amount:applied,date,note});save();closeModal();render();toast('Payment recorded')}
+function removePayment(id){const p=state.payments.find(x=>x.id===id);if(!p)return;const d=state.debts.find(x=>x.id===p.debtId);if(d)d.balance+=p.amount;state.payments=state.payments.filter(x=>x.id!==id);save();render();toast('Payment removed')}
+
+function toggleToolsMenu(){
+  const menu=$('toolsMenu');
+  const trigger=document.querySelector('.menu-trigger');
+  if(!menu)return;
+  const show=!menu.classList.contains('show');
+  menu.classList.toggle('show',show);
+  if(trigger)trigger.setAttribute('aria-expanded',show?'true':'false');
+}
+function closeToolsMenu(){
+  const menu=$('toolsMenu');
+  const trigger=document.querySelector('.menu-trigger');
+  if(menu)menu.classList.remove('show');
+  if(trigger)trigger.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click',function(e){
+  const actions=document.querySelector('.actions');
+  if(actions && !actions.contains(e.target))closeToolsMenu();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')closeToolsMenu();
+});
+
+function importData(){
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='application/json,.json';
+  input.onchange=()=>{
+    const file=input.files&&input.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const imported=JSON.parse(reader.result);
+        if(!imported || typeof imported!=='object' || !Array.isArray(imported.debts)){
+          throw new Error('Invalid backup format');
+        }
+        const debts=imported.debts.map(d=>({
+          id:Number(d.id)||Date.now()+Math.random(),
+          name:String(d.name||'Debt'),
+          start:Math.max(0,Number(d.start)||0),
+          balance:Math.max(0,Number(d.balance)||0),
+          apr:Math.max(0,Number(d.apr)||0),
+          min:Math.max(0,Number(d.min)||0)
+        })).filter(d=>d.name && d.start>0);
+
+        state={
+          ...state,
+          debts,
+          payments:Array.isArray(imported.payments)?imported.payments:[],
+          strategy:imported.strategy==='avalanche'?'avalanche':'snowball',
+          extra:Math.max(0,Number(imported.extra)||0),
+          dark:!!imported.dark
+        };
+        save();
+        $('extra').value=state.extra||0;
+        applyDark();
+        render();
+        toast('Backup imported successfully');
+      }catch(err){
+        toast('Could not import this JSON backup.');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetDemo(){
+  const ok=confirm('Reset the demo to the original sample data? This will replace the current data in this browser.');
+  if(!ok)return;
+  const demo={
+    debts:[
+      {id:101,name:'Visa',start:5000,balance:3000,apr:20,min:300},
+      {id:102,name:'Capital One',start:2000,balance:1700,apr:12,min:300},
+      {id:103,name:'Bank of America',start:1000,balance:900,apr:25,min:150},
+      {id:104,name:'Visa 2',start:10000,balance:10000,apr:14,min:250}
+    ],
+    payments:[
+      {id:201,debtId:101,debtName:'Visa',amount:1000,date:'2026-07-15',note:'Demo payment'},
+      {id:202,debtId:102,debtName:'Capital One',amount:300,date:'2026-08-01',note:'Demo payment'}
+    ],
+    strategy:'snowball',
+    extra:300,
+    dark:false
+  };
+  state={...state,...demo};
+  save();
+  $('extra').value=state.extra;
+  applyDark();
+  render();
+  toast('Demo reset');
+}
+
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});download(blob,'debt-payoff-backup.json')}
+function exportCSV(){const rows=[['Debt','Starting Balance','Current Balance','APR','Minimum Payment','Paid','Progress %'],...state.debts.map(d=>[d.name,d.start.toFixed(2),d.balance.toFixed(2),d.apr,d.min.toFixed(2),(d.start-d.balance).toFixed(2),((d.start-d.balance)/d.start*100).toFixed(1)])];const csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');download(new Blob([csv],{type:'text/csv'}),'debt-payoff-summary.csv')}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+
+function openAddDebtPaywall(){
+  const modal=$('addDebtPaywall');
+  if(modal){
+    modal.classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+}
+function closeAddDebtPaywall(){
+  const modal=$('addDebtPaywall');
+  if(modal){
+    modal.classList.remove('show');
+    document.body.style.overflow='';
+  }
+}
+
+load();render();
+</script>
+
+<!-- ========================================================== -->
+<!-- 🚫 ANTI-COPY PROTECTION + PAYWALL -->
+<!-- ========================================================== -->
+<script>
+(function() {
+  // Limitar creaciones por sesión (máximo 10)
+  let creationCount = sessionStorage.getItem('creationCount') || 0;
+  creationCount = parseInt(creationCount);
+  const MAX_CREATIONS = 10;
+  const ETSY_LINK = 'https://www.etsy.com/listing/4555924123/debt-payoff-planner-snowball-avalanche';
+
+  // Hook original para addDebt y recordPayment
+  const originalAddDebt = window.addDebt;
+  const originalRecordPayment = window.recordPayment;
+
+  window.addDebt = function() {
+    if (creationCount >= MAX_CREATIONS) {
+      alert('⚠️ You\'ve reached the 10 action limit in this demo.\n\nGet the full version on Etsy for unlimited access:\n' + ETSY_LINK);
+      return;
+    }
+    creationCount++;
+    sessionStorage.setItem('creationCount', creationCount);
+    return originalAddDebt.apply(this, arguments);
+  };
+
+  window.recordPayment = function() {
+    if (creationCount >= MAX_CREATIONS) {
+      alert('⚠️ You\'ve reached the 10 action limit in this demo.\n\nGet the full version on Etsy for unlimited access:\n' + ETSY_LINK);
+      return;
+    }
+    creationCount++;
+    sessionStorage.setItem('creationCount', creationCount);
+    return originalRecordPayment.apply(this, arguments);
+  };
+
+  // 🚫 BLOQUEO DE CLIC DERECHO
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+
+  // 🚫 BLOQUEO DE SELECCIÓN DE TEXTO
+  document.addEventListener('selectstart', function(e) {
+    if (!isEditableField(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 🚫 BLOQUEO DE ARRASTRAR CONTENIDO
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+
+  // 🚫 BLOQUEO DE COPIAR (Ctrl+C, Cmd+C)
+  document.addEventListener('copy', function(e) {
+    if (!isEditableField(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 🚫 BLOQUEO DE CORTAR (Ctrl+X, Cmd+X)
+  document.addEventListener('cut', function(e) {
+    if (!isEditableField(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 🚫 BLOQUEO DE ATAJOS DE TECLADO
+  document.addEventListener('keydown', function(e) {
+    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    const isCtrl = isMac ? e.metaKey : e.ctrlKey;
+    const isEditable = isEditableField(e.target);
+
+    // Bloquear Ctrl+C / Cmd+C
+    if (isCtrl && e.key.toLowerCase() === 'c' && !isEditable) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+X / Cmd+X
+    if (isCtrl && e.key.toLowerCase() === 'x' && !isEditable) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+U (view source)
+    if (isCtrl && e.key.toLowerCase() === 'u') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+S (save)
+    if (isCtrl && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+A en contenido no editable
+    if (isCtrl && e.key.toLowerCase() === 'a' && !isEditable) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+P (print)
+    if (isCtrl && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+Shift+S (save as)
+    if (isCtrl && e.shiftKey && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear F12 (developer tools)
+    if (e.key === 'F12') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+Shift+I (inspect)
+    if (isCtrl && e.shiftKey && e.key.toLowerCase() === 'i') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+Shift+J (console)
+    if (isCtrl && e.shiftKey && e.key.toLowerCase() === 'j') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Bloquear Ctrl+Shift+C (inspect element)
+    if (isCtrl && e.shiftKey && e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Mac: Cmd+Opt+I (inspect)
+    if (isMac && e.metaKey && e.altKey && e.key.toLowerCase() === 'i') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Mac: Cmd+Opt+J (console)
+    if (isMac && e.metaKey && e.altKey && e.key.toLowerCase() === 'j') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Mac: Cmd+Opt+C (inspect element)
+    if (isMac && e.metaKey && e.altKey && e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Mac: Cmd+Opt+U (view source)
+    if (isMac && e.metaKey && e.altKey && e.key.toLowerCase() === 'u') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+  }, true);
+
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    const modal=document.getElementById('addDebtPaywall');
+    if(modal && modal.classList.contains('show')) closeAddDebtPaywall();
+  }
+},true);
+
+  // 🚫 BLOQUEAR PEGADO (solo en campos no editables)
+  document.addEventListener('paste', function(e) {
+    if (!isEditableField(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 🚫 DETECTAR CAMPOS EDITABLES
+  function isEditableField(element) {
+    if (!element) return false;
+    const tagName = element.tagName.toLowerCase();
+    const type = (element.type || '').toLowerCase();
+
+    return (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      (tagName === 'select' && type !== 'radio' && type !== 'checkbox') ||
+      element.contentEditable === 'true' ||
+      element.classList.contains('form-input') ||
+      element.classList.contains('form-textarea') ||
+      element.classList.contains('form-select')
+    );
+  }
+
+  // 🛡️ DESACTIVAR DRAG AND DROP A NIVEL GLOBAL
+  document.body.style.userSelect = 'none';
+  document.body.style.WebkitUserSelect = 'none';
+  document.body.style.MozUserSelect = 'none';
+  document.body.style.msUserSelect = 'none';
+
+})();
+</script>
+<!-- FIN DE LA PROTECCIÓN -->
+
+</body>
+</html>
